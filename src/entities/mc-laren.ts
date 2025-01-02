@@ -1,6 +1,6 @@
 import {Group, Mesh, MeshStandardMaterial, Vector3} from 'three'
-import {DEG2RAD} from 'three/src/math/MathUtils.js'
 import {ObjectModel, Updatable} from '../interfaces'
+import {DEG2RAD} from 'three/src/math/MathUtils.js'
 import {getByName} from '../utils'
 import {Input} from '../core'
 
@@ -11,58 +11,48 @@ export class McLaren implements ObjectModel, Updatable {
     return this.#model
   }
 
-  /**
-   * Massa do caminhão em kg
-   */
   #carMass = 8000
 
-  /**
-   * Força do motor em N
-   */
   #tractionForceValue = 45000
 
-  /**
-   * Resistência do ar
-   */
   #airResistance = 0.015
 
-  /**
-   * Resistência ao rolamento
-   */
   #rollingResistance = 10
 
-  /**
-   * Força de freio em N
-   */
   #brakeForce = 80000
 
-  /**
-   * Coeficiente de atrito lateral
-   */
   #lateralFriction = 0.7
 
-  /**
-   * Velocidade máxima
-   */
-  #maxSpeed = 100 // ~360 km/h
+  #maxSpeed = 100
 
   #currentVelocity = new Vector3()
+
   #localAcceleration = new Vector3()
+
   #netForce = new Vector3()
+
   #resistanceForce = new Vector3()
+
   #tractionForce = new Vector3()
+
   #angularVelocity = 0
 
   #currentSteering = 0
+
   #steeringAngle = 0
 
   #backWheels: Mesh
+
   #frontWheelLeft: Mesh
+
   #frontWheelRight: Mesh
+
   #frontWheelLeftParent: Group
+
   #frontWheelRightParent: Group
 
   #rearLight: Mesh
+
   #rearLightMaterial: MeshStandardMaterial
 
   #input = Input.getInstance()
@@ -91,9 +81,7 @@ export class McLaren implements ObjectModel, Updatable {
     const sinRotation = Math.sin(carRotation)
     const cosRotation = Math.cos(carRotation)
 
-    /**
-     * Aplica força de tração
-     */
+    /** Aplica força de tração */
     if (this.#input.state.up) {
       this.#tractionForce.set(0, 0, this.#tractionForceValue)
     } else if (this.#input.state.down) {
@@ -102,9 +90,7 @@ export class McLaren implements ObjectModel, Updatable {
       this.#tractionForce.set(0, 0, 0)
     }
 
-    /**
-     * Aplica força de freio
-     */
+    /** Aplica força de freio */
     const brakeForce = new Vector3()
     const isBraking = this.#input.state.space
 
@@ -117,9 +103,7 @@ export class McLaren implements ObjectModel, Updatable {
         .multiplyScalar(-this.#brakeForce)
     }
 
-    /**
-     * Força de resistência
-     */
+    /** Força de resistência */
     this.#resistanceForce.x = -(
       this.#airResistance *
         this.#currentVelocity.x *
@@ -134,9 +118,7 @@ export class McLaren implements ObjectModel, Updatable {
       this.#rollingResistance * this.#currentVelocity.z
     )
 
-    /**
-     * Força total
-     */
+    /** Força total */
     const globalTractionX =
       sinRotation * this.#tractionForce.z + cosRotation * this.#tractionForce.x
     const globalTractionZ =
@@ -147,27 +129,18 @@ export class McLaren implements ObjectModel, Updatable {
       .add(this.#resistanceForce)
       .add(brakeForce)
 
-    /**
-     * Calcula aceleração (F = ma)
-     */
-    const effectiveMass = this.#carMass
-    this.#localAcceleration.copy(this.#netForce).divideScalar(effectiveMass)
+    /** Calcula aceleração (F = ma) */
+    this.#localAcceleration.copy(this.#netForce).divideScalar(this.#carMass)
 
-    /**
-     * Atualiza velocidade
-     */
+    /** Atualiza velocidade */
     this.#currentVelocity.addScaledVector(this.#localAcceleration, deltaTime)
 
-    /**
-     * Limitar velocidade máxima
-     */
+    /** Limitar velocidade máxima */
     if (this.#currentVelocity.length() > this.#maxSpeed) {
       this.#currentVelocity.setLength(this.#maxSpeed)
     }
 
-    /**
-     * Reduz componente lateral da velocidade
-     */
+    /** Reduz componente lateral da velocidade */
     const forwardDirection = new Vector3(
       Math.sin(carRotation),
       0,
@@ -182,21 +155,15 @@ export class McLaren implements ObjectModel, Updatable {
       lateralVelocity.multiplyScalar(this.#lateralFriction)
     )
 
-    /**
-     * Parada mínima
-     */
+    /** Parada mínima */
     if (this.#currentVelocity.length() < 0.05) {
       this.#currentVelocity.set(0, 0, 0)
     }
 
-    /**
-     * Ajusta posição
-     */
+    /** Ajusta posição */
     this.#model.position.addScaledVector(this.#currentVelocity, deltaTime)
 
-    /**
-     * Rotação do caminhão
-     */
+    /** Rotação do caminhão */
     const localVelocityZ = this.#currentVelocity.dot(forwardDirection)
     const turningRadius = 10
     this.#angularVelocity =
@@ -212,9 +179,7 @@ export class McLaren implements ObjectModel, Updatable {
     const steeringInput =
       (this.#input.state.left ? 1 : 0) - (this.#input.state.right ? 1 : 0)
 
-    /**
-     * Atualiza direção
-     */
+    /** Atualiza direção */
     if (steeringInput === 0) {
       if (this.#currentSteering > 0) {
         this.#currentSteering = Math.max(
@@ -232,20 +197,14 @@ export class McLaren implements ObjectModel, Updatable {
       this.#currentSteering = Math.max(-1, Math.min(1, this.#currentSteering))
     }
 
-    /**
-     * Calcula ângulo de direção
-     */
+    /** Calcula ângulo de direção */
     this.#steeringAngle = this.#currentSteering * 25 * DEG2RAD
 
-    /**
-     * Aplica ângulo de direção
-     */
+    /** Aplica ângulo de direção */
     this.#frontWheelLeftParent.rotation.y = this.#steeringAngle
     this.#frontWheelRightParent.rotation.y = this.#steeringAngle
 
-    /**
-     * Rotação sincronizada das rodas
-     */
+    /** Rotação sincronizada das rodas */
     const wheelRadius = 0.5
     const localVelocityZ = this.#currentVelocity.dot(
       new Vector3(
