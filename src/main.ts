@@ -7,7 +7,7 @@ import './style.scss'
 
 const loadMcLaren = async (loader: Loader) => {
   return loader.gltf
-    .loadAsync('mc-laren.glb', createProgress('McLaren MP4/6'))
+    .loadAsync('mc-laren.glb', createProgress('McLaren MP4 5'))
     .then(async (gltf) => {
       return new McLaren(gltf.scene)
     })
