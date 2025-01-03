@@ -51,6 +51,8 @@ export class McLaren implements ObjectModel, Updatable {
 
   #frontWheelRightParent: Group
 
+  #steeringWheel: Mesh
+
   #rearLight: Mesh
 
   #rearLightMaterial: MeshStandardMaterial
@@ -64,6 +66,7 @@ export class McLaren implements ObjectModel, Updatable {
     this.#backWheels = getByName(this.model, 'BackWheels')
     this.#frontWheelLeft = getByName(this.model, 'FrontWheelLeft')
     this.#frontWheelRight = getByName(this.model, 'FrontWheelRight')
+    this.#steeringWheel = getByName(this.model, 'SteeringWheel')
 
     this.#frontWheelLeftParent = this.#frontWheelLeft.parent as Group
     this.#frontWheelRightParent = this.#frontWheelRight.parent as Group
@@ -163,7 +166,7 @@ export class McLaren implements ObjectModel, Updatable {
     /** Ajusta posição */
     this.#model.position.addScaledVector(this.#currentVelocity, deltaTime)
 
-    /** Rotação do caminhão */
+    /** Rotação do carro */
     const localVelocityZ = this.#currentVelocity.dot(forwardDirection)
     const turningRadius = 10
     this.#angularVelocity =
@@ -204,6 +207,8 @@ export class McLaren implements ObjectModel, Updatable {
     this.#frontWheelLeftParent.rotation.y = this.#steeringAngle
     this.#frontWheelRightParent.rotation.y = this.#steeringAngle
 
+    this.#steeringWheel.rotation.y = this.#steeringAngle * 3
+
     /** Rotação sincronizada das rodas */
     const wheelRadius = 0.5
     const localVelocityZ = this.#currentVelocity.dot(
@@ -218,5 +223,7 @@ export class McLaren implements ObjectModel, Updatable {
     this.#frontWheelLeft.rotation.x += wheelRotation
     this.#frontWheelRight.rotation.x += wheelRotation
     this.#backWheels.rotation.x += wheelRotation
+    
+    
   }
 }
