@@ -1,5 +1,5 @@
 import {createLights, createLoop, createProgress} from './factories'
-import {Camera, Controls, Loader, Renderer} from './core'
+import {Camera, Follower, Loader, Renderer} from './core'
 import {McLaren} from './entities/mc-laren'
 import {inner, values} from './utils'
 import {Scene} from 'three'
@@ -15,9 +15,9 @@ const scene = new Scene()
 
 const camera = new Camera()
 
-const renderer = new Renderer(app, 0x010101)
+const follower = new Follower(camera)
 
-const controls = new Controls(camera, renderer)
+const renderer = new Renderer(app, 0x010101)
 
 scene.add(...values(createLights()))
 
@@ -31,10 +31,12 @@ const init = async () => {
   mcLaren.model.rotation.y = Math.PI * 1.3
   scene.add(mcLaren.model)
 
+  follower.setTarget(mcLaren)
+
   const loop = createLoop((delta) => {
     mcLaren.update(delta)
 
-    controls.update(delta)
+    follower.update(delta)
 
     renderer.render(scene, camera)
   })
