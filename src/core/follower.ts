@@ -11,8 +11,8 @@ export class Follower {
    * da câmera em relação ao carro
    */
   #offset = {
-    back: new Vector3(0, 2, -3),
-    front: new Vector3(0, 4, 3),
+    back: new Vector3(0, 2, -4),
+    front: new Vector3(0, 8, 16),
   }
 
   #current = this.#offset.back
@@ -39,7 +39,7 @@ export class Follower {
     this.#current = this.#offset[view]
   }
 
-  toggleView = () => {
+  toggle = () => {
     if (this.#current === this.#offset.back) {
       this.#current = this.#offset.front
     } else {

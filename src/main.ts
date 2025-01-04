@@ -1,5 +1,5 @@
 import {createLights, createLoop, createProgress} from './factories'
-import {Camera, Follower, Loader, Renderer} from './core'
+import {Camera, Follower, Input, Loader, Renderer} from './core'
 import {McLaren} from './entities/mc-laren'
 import {inner, values} from './utils'
 import {Scene} from 'three'
@@ -23,6 +23,8 @@ scene.add(...values(createLights()))
 
 const loader = Loader.getInstance()
 
+const input = Input.getInstance()
+
 const init = async () => {
   const mcLaren = await loadMcLaren(loader)
   mcLaren.model.position.x = 0
@@ -40,6 +42,8 @@ const init = async () => {
 
     renderer.render(scene, camera)
   })
+
+  input.on('v', follower.toggle)
 
   loop.animate()
 }

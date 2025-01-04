@@ -1,30 +1,38 @@
 import {Clock} from 'three'
 
 export const createLoop = (callbackFn: (delta: number) => void) => {
-  let animation: number | null = null
+  let ref = 0
+  let paused = false
   const clock = new Clock()
 
-  const animateFn = () => {
+  const animate = () => {
+    ref = requestAnimationFrame(animate)
+
+    if (paused) return
+
     const delta = clock.getDelta()
 
     callbackFn(delta)
+  }
 
-    return requestAnimationFrame(animateFn)
+  const cancel = () => {
+    cancelAnimationFrame(ref)
+    ref = 0
+  }
+
+  const pause = () => {
+    paused = !paused
+  }
+
+  const stop = () => {
+    if (ref) cancel()
+    else animate()
   }
 
   return {
-    animate() {
-      animation = animateFn()
-    },
-    cancel() {
-      if (animation) {
-        cancelAnimationFrame(animation)
-      }
-      animation = null
-    },
-    toggle() {
-      if (animation) this.cancel()
-      else this.animate()
-    },
+    animate,
+    cancel,
+    pause,
+    stop,
   }
 }

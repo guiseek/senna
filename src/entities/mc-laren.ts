@@ -41,11 +41,17 @@ export class McLaren implements ObjectModel, Updatable {
 
   #steeringAngle = 0
 
-  #backWheels: Mesh
-
   #frontWheelLeft: Mesh
 
+  #backWheelLeft: Mesh
+
+  #frontHubLeft: Mesh
+
   #frontWheelRight: Mesh
+
+  #backWheelRight: Mesh
+
+  #frontHubRight: Mesh
 
   #frontWheelLeftParent: Group
 
@@ -63,9 +69,12 @@ export class McLaren implements ObjectModel, Updatable {
     this.#model = scene
 
     this.#rearLight = getByName(this.model, 'RearLight')
-    this.#backWheels = getByName(this.model, 'BackWheels')
-    this.#frontWheelLeft = getByName(this.model, 'FrontWheelLeft')
+    this.#frontHubLeft = getByName(this.model, 'FrontHubLeft')
+    this.#backWheelLeft = getByName(this.model, 'BackWheelLeft')
+    this.#backWheelRight = getByName(this.model, 'BackWheelRight')
     this.#frontWheelRight = getByName(this.model, 'FrontWheelRight')
+    this.#frontWheelLeft = getByName(this.model, 'FrontWheelLeft')
+    this.#frontHubRight = getByName(this.model, 'FrontHubRight')
     this.#steeringWheel = getByName(this.model, 'SteeringWheel')
 
     this.#frontWheelLeftParent = this.#frontWheelLeft.parent as Group
@@ -206,6 +215,8 @@ export class McLaren implements ObjectModel, Updatable {
     /** Aplica ângulo de direção */
     this.#frontWheelLeftParent.rotation.y = this.#steeringAngle
     this.#frontWheelRightParent.rotation.y = this.#steeringAngle
+    this.#frontHubLeft.rotation.y = this.#steeringAngle
+    this.#frontHubRight.rotation.y = this.#steeringAngle
 
     this.#steeringWheel.rotation.y = this.#steeringAngle * 3
 
@@ -222,8 +233,7 @@ export class McLaren implements ObjectModel, Updatable {
 
     this.#frontWheelLeft.rotation.x += wheelRotation
     this.#frontWheelRight.rotation.x += wheelRotation
-    this.#backWheels.rotation.x += wheelRotation
-    
-    
+    this.#backWheelLeft.rotation.x += wheelRotation
+    this.#backWheelRight.rotation.x += wheelRotation
   }
 }
