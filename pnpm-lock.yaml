@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  cannon-es:
+    specifier: ^0.20.0
+    version: 0.20.0
   three:
     specifier: ^0.172.0
     version: 0.172.0
@@ -13,6 +16,9 @@ devDependencies:
   '@types/three':
     specifier: ^0.171.0
     version: 0.171.0
+  cannon-es-debugger:
+    specifier: ^1.0.0
+    version: 1.0.0(cannon-es@0.20.0)(three@0.172.0)(typescript@5.6.3)
   sass:
     specifier: ^1.83.0
     version: 1.83.0
@@ -585,6 +591,24 @@ packages:
     dev: true
     optional: true
 
+  /cannon-es-debugger@1.0.0(cannon-es@0.20.0)(three@0.172.0)(typescript@5.6.3):
+    resolution: {integrity: sha512-sE9lDOBAYFKlh+0w+cvWKwUhJef8HYnUSVPWPL0jD15MAuVRQKno4QYZSGxgOoJkMR3mQqxL4bxys2b3RSWH8g==}
+    peerDependencies:
+      cannon-es: 0.x
+      three: 0.x
+      typescript: '>=3.8'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      cannon-es: 0.20.0
+      three: 0.172.0
+      typescript: 5.6.3
+    dev: true
+
+  /cannon-es@0.20.0:
+    resolution: {integrity: sha512-eZhWTZIkFOnMAJOgfXJa9+b3kVlvG+FX4mdkpePev/w/rP5V8NRquGyEozcjPfEoXUlb+p7d9SUcmDSn14prOA==}
+
   /chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
@@ -780,7 +804,6 @@ packages:
 
   /three@0.172.0:
     resolution: {integrity: sha512-6HMgMlzU97MsV7D/tY8Va38b83kz8YJX+BefKjspMNAv0Vx6dxMogHOrnRl/sbMIs3BPUKijPqDqJ/+UwJbIow==}
-    dev: false
 
   /to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}

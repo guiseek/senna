@@ -1,41 +1,48 @@
-import {createLights, createLoop, createProgress} from './factories'
-import {Camera, Follower, Input, Loader, Renderer} from './core'
-import {McLaren} from './entities/mc-laren'
+import {loadMcLaren, loadSound, loadTrack} from './loaders'
+import {createLights, createLoop} from './factories'
+import {Camera, Follower, Input, Renderer} from './core'
 import {inner, values} from './utils'
+import {World} from 'cannon-es'
 import {Scene} from 'three'
 import './style.scss'
 
-const loadMcLaren = async (loader: Loader) => {
-  return loader.gltf
-    .loadAsync('mc-laren.glb', createProgress('McLaren'))
-    .then((gltf) => new McLaren(gltf.scene))
-}
-
 const scene = new Scene()
 
-const camera = new Camera()
-
-const follower = new Follower(camera)
+const camera = new Camera(75, 0.1, 10000)
 
 const renderer = new Renderer(app, 0x010101)
 
+const follower = new Follower(camera)
+
 scene.add(...values(createLights()))
 
-const loader = Loader.getInstance()
+const world = new World()
+world.gravity.set(0, -9.82, 0)
+
+// const cannonDebugger = CannonDebugger(scene, world)
 
 const input = Input.getInstance()
 
 const init = async () => {
-  const mcLaren = await loadMcLaren(loader)
-  mcLaren.model.position.x = 0
-  mcLaren.model.position.z = 4.5
-  mcLaren.model.position.y = -2.5
-  mcLaren.model.rotation.y = Math.PI * 1.3
+  const sound = await loadSound()
+
+  const track = await loadTrack(world)
+  scene.add(track.model)
+
+  const mcLaren = await loadMcLaren(world, sound)
+  mcLaren.model.position.x = 260
+  mcLaren.model.rotation.y = -Math.PI / 2
   scene.add(mcLaren.model)
 
   follower.setTarget(mcLaren)
 
+  mcLaren.on('start', () => {
+    console.log('start')
+  })
+
   const loop = createLoop((delta) => {
+    world.step(1 / 60, delta)
+
     mcLaren.update(delta)
 
     follower.update(delta)
@@ -46,6 +53,7 @@ const init = async () => {
   input.on('v', follower.toggle)
 
   loop.animate()
+  // cannonDebugger.update()
 }
 
 init()

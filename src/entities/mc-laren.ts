@@ -1,8 +1,21 @@
+import {Callback, EventEmitter, getByName, meshToBody} from '../utils'
+import {SoundIdle, SoundRun, SoundRunning, SoundStart} from './sound'
 import {Group, Mesh, MeshStandardMaterial, Vector3} from 'three'
 import {ObjectModel, Updatable} from '../interfaces'
 import {DEG2RAD} from 'three/src/math/MathUtils.js'
-import {getByName} from '../utils'
 import {Input} from '../core'
+import {World, Material} from 'cannon-es'
+
+export interface McLarenEventMap {
+  start: true
+}
+
+export interface McLarenSoundMap {
+  start: SoundStart
+  idle: SoundIdle
+  run: SoundRun
+  running: SoundRunning
+}
 
 export class McLaren implements ObjectModel, Updatable {
   #model: Group
@@ -11,19 +24,25 @@ export class McLaren implements ObjectModel, Updatable {
     return this.#model
   }
 
-  #carMass = 8000
+  #carMass = 6000
 
-  #tractionForceValue = 45000
+  #tractionForceValue = 90000
 
   #airResistance = 0.015
 
   #rollingResistance = 10
 
-  #brakeForce = 80000
+  #brakeForce = 300000
 
   #lateralFriction = 0.7
 
-  #maxSpeed = 100
+  #maxSpeed = 360
+
+  #rpm = 0
+
+  get rpm() {
+    return this.#rpm
+  }
 
   #currentVelocity = new Vector3()
 
@@ -41,41 +60,187 @@ export class McLaren implements ObjectModel, Updatable {
 
   #steeringAngle = 0
 
-  #frontWheelLeft: Mesh
-
-  #backWheelLeft: Mesh
-
   #frontHubLeft: Mesh
 
-  #frontWheelRight: Mesh
+  #frontWheelLeft: Mesh
 
-  #backWheelRight: Mesh
-
-  #frontHubRight: Mesh
+  // #frontBodyLeft: Body
 
   #frontWheelLeftParent: Group
 
+  #backWheelLeft: Mesh
+
+  // #backBodyLeft: Body
+
+  // #backWheelLeftParent: Object3D
+
+  #frontHubRight: Mesh
+
+  #frontWheelRight: Mesh
+
+  // #frontBodyRight: Body
+
   #frontWheelRightParent: Group
+
+  #backWheelRight: Mesh
+
+  // #backBodyRight: Body
+
+  // #backWheelRightParent: Object3D
 
   #steeringWheel: Mesh
 
   #rearLight: Mesh
 
+  #head: Mesh
+
+  #chassis: Mesh
+
   #rearLightMaterial: MeshStandardMaterial
 
   #input = Input.getInstance()
 
-  constructor(scene: Group) {
+  material = new Material('chassis')
+
+  // #chassisBody: Body
+
+  #event = new EventEmitter<McLarenEventMap>()
+
+  #started = false
+
+  constructor(
+    scene: Group,
+    private world: World,
+    private sound: McLarenSoundMap
+  ) {
     this.#model = scene
 
+    this.#head = getByName(this.model, 'Head')
     this.#rearLight = getByName(this.model, 'RearLight')
     this.#frontHubLeft = getByName(this.model, 'FrontHubLeft')
-    this.#backWheelLeft = getByName(this.model, 'BackWheelLeft')
-    this.#backWheelRight = getByName(this.model, 'BackWheelRight')
-    this.#frontWheelRight = getByName(this.model, 'FrontWheelRight')
-    this.#frontWheelLeft = getByName(this.model, 'FrontWheelLeft')
+
     this.#frontHubRight = getByName(this.model, 'FrontHubRight')
     this.#steeringWheel = getByName(this.model, 'SteeringWheel')
+
+    this.#input.on('change', async (event) => {
+      if (!this.#started && event.key === 'up' && !event.prev && event.next) {
+        await this.sound.start.exec()
+        this.#started = event.next
+        this.sound.running.play()
+      }
+    })
+
+    /**
+     * Chassis
+     */
+
+    const chassis = getByName<Group>(this.model, 'Chassis')
+    const [mesh] = chassis.children
+    console.log(mesh)
+
+    this.#chassis = mesh as Mesh
+
+    this.#chassis.add(this.sound.start, this.sound.idle, this.sound.running)
+
+    const chassisBody = meshToBody(this.#chassis, {
+      mass: 150,
+      material: this.material,
+      adjustRotation: true,
+    })
+    console.log(chassisBody)
+
+    this.world.addBody(chassisBody)
+
+    // this.#chassisBody = chassisBody
+
+    /**
+     * Vehicle
+     */
+
+    // const vehicle = new RaycastVehicle({
+    //   chassisBody,
+    //   indexRightAxis: 0,
+    //   indexUpAxis: 1,
+    //   indexForwardAxis: 2,
+    // })
+
+    /**
+     * Wheels
+     */
+
+    // const wheelOptions: WheelInfoOptions = {
+    //   directionLocal: new Vec3(0, -1, 0),
+    //   suspensionStiffness: 30,
+    //   suspensionRestLength: 0.3,
+    //   frictionSlip: 5,
+    //   dampingRelaxation: 2.3,
+    //   dampingCompression: 4.4,
+    //   maxSuspensionForce: 100000,
+    //   rollInfluence: 0.01,
+    //   axleLocal: new Vec3(-1, 0, 0),
+    //   chassisConnectionPointLocal: new Vec3(1, 0, 2),
+    //   maxSuspensionTravel: 0.3,
+    //   customSlidingRotationalSpeed: -30,
+    //   useCustomSlidingRotationalSpeed: true,
+    // }
+
+    // const wheels: Body[] = []
+
+    this.#backWheelLeft = getByName(this.model, 'BackWheelLeft')
+
+    // this.#backBodyLeft = meshToBody(this.#backWheelLeft, {
+    //   mass: 5,
+    //   material: this.material,
+    //   adjustRotation: true,
+    // })
+
+    // this.#backBodyLeft.position.copy(
+    //   cannon.toVec3(this.#backWheelLeft.position)
+    // )
+    // this.#backBodyLeft.quaternion.copy(
+    //   cannon.toQuaternion(this.#backWheelLeft.quaternion)
+    // )
+
+    // this.world.addBody(this.#backBodyLeft)
+
+    // this.#backWheelLeftParent = this.#backWheelLeft.parent as Object3D
+
+    // console.log(this.#backWheelLeftParent.position)
+
+    // wheels.push(this.#backBodyLeft)
+
+    this.#backWheelRight = getByName(this.model, 'BackWheelRight')
+
+    // this.#backBodyRight = meshToBody(this.#backWheelRight, {
+    //   mass: 5,
+    //   material: this.material,
+    // })
+
+    // // this.#backWheelRightParent = this.#backWheelRight.parent as Object3D
+
+    // wheels.push(this.#backBodyRight)
+
+    this.#frontWheelRight = getByName(this.model, 'FrontWheelRight')
+
+    // this.#frontBodyRight = meshToBody(this.#frontWheelRight, {
+    //   mass: 5,
+    //   material: this.material,
+    // })
+
+    // wheels.push(this.#frontBodyRight)
+
+    this.#frontWheelLeft = getByName(this.model, 'FrontWheelLeft')
+
+    // this.#frontBodyLeft = meshToBody(this.#frontWheelLeft, {
+    //   mass: 5,
+    //   material: this.material,
+    // })
+
+    // wheels.push(this.#frontBodyLeft)
+
+    // console.log(this.#frontWheelLeft.position)
+
+    // console.log(wheels)
 
     this.#frontWheelLeftParent = this.#frontWheelLeft.parent as Group
     this.#frontWheelRightParent = this.#frontWheelRight.parent as Group
@@ -83,9 +248,31 @@ export class McLaren implements ObjectModel, Updatable {
     this.#rearLightMaterial = this.#rearLight.material as MeshStandardMaterial
   }
 
+  on<K extends keyof McLarenEventMap>(
+    eventName: K,
+    callback: Callback<McLarenEventMap[K]>
+  ) {
+    this.#event.on(eventName, callback)
+  }
+
   update(delta: number) {
+    if (!this.#started) return
+
+    this.#updateSound()
     this.#updateCar(delta)
     this.#updateWheels(delta)
+
+    // console.log(this.#currentVelocity.length());
+  }
+
+  #updateSound() {
+    if (
+      this.#started &&
+      !this.sound.running.isPlaying &&
+      !this.sound.idle.isPlaying
+    ) {
+      this.sound.idle.play()
+    } else this.sound.running.update(this.rpm)
   }
 
   #updateCar(deltaTime: number) {
@@ -172,18 +359,18 @@ export class McLaren implements ObjectModel, Updatable {
       this.#currentVelocity.set(0, 0, 0)
     }
 
-    /** Ajusta posição */
-    this.#model.position.addScaledVector(this.#currentVelocity, deltaTime)
-
     /** Rotação do carro */
     const localVelocityZ = this.#currentVelocity.dot(forwardDirection)
-    const turningRadius = 10
+    const turningRadius = Math.max(10, this.rpm / 20)
     this.#angularVelocity =
       (this.#currentSteering * Math.abs(localVelocityZ)) / turningRadius
 
     const velocityDirection = localVelocityZ >= 0 ? 1 : -1
     this.#model.rotation.y +=
       this.#angularVelocity * deltaTime * velocityDirection
+
+    /** Ajusta posição */
+    this.#model.position.addScaledVector(this.#currentVelocity, deltaTime)
   }
 
   #updateWheels(deltaTime: number) {
@@ -220,6 +407,8 @@ export class McLaren implements ObjectModel, Updatable {
 
     this.#steeringWheel.rotation.y = this.#steeringAngle * 3
 
+    this.#head.rotation.y = this.#steeringAngle * 0.6
+
     /** Rotação sincronizada das rodas */
     const wheelRadius = 0.5
     const localVelocityZ = this.#currentVelocity.dot(
@@ -235,5 +424,8 @@ export class McLaren implements ObjectModel, Updatable {
     this.#frontWheelRight.rotation.x += wheelRotation
     this.#backWheelLeft.rotation.x += wheelRotation
     this.#backWheelRight.rotation.x += wheelRotation
+
+    const rpm = (Math.abs(localVelocityZ) * 60) / (2 * Math.PI * wheelRadius)
+    this.#rpm = parseFloat(rpm.toFixed(2))
   }
 }
