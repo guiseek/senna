@@ -1,9 +1,11 @@
-import {loadMcLaren, loadSound, loadTrack} from './loaders'
-import {createLights, createLoop} from './factories'
+import {loadEngine, loadMcLaren, loadTrack} from './loaders'
 import {Camera, Follower, Input, Renderer} from './core'
-import {inner, values} from './utils'
+import {createLights, createLoop} from './factories'
+import {inner, interval, values} from './utils'
+import {AudioListener, Scene} from 'three'
+import {Collision} from './physics'
+import {updateGear} from './dom'
 import {World} from 'cannon-es'
-import {Scene} from 'three'
 import './style.scss'
 
 const scene = new Scene()
@@ -23,22 +25,28 @@ world.gravity.set(0, -9.82, 0)
 
 const input = Input.getInstance()
 
+const collision = new Collision()
+
 const init = async () => {
-  const sound = await loadSound()
+  const audioListener = new AudioListener()
+
+  const engine = await loadEngine(audioListener)
 
   const track = await loadTrack(world)
   scene.add(track.model)
 
-  const mcLaren = await loadMcLaren(world, sound)
+  collision.track(track.model)
+
+  const mcLaren = await loadMcLaren(world, engine)
   mcLaren.model.position.x = 260
   mcLaren.model.rotation.y = -Math.PI / 2
   scene.add(mcLaren.model)
 
   follower.setTarget(mcLaren)
 
-  mcLaren.on('start', () => {
-    console.log('start')
-  })
+  interval(() => {
+    updateGear(mcLaren.engine.current)
+  }, 500)
 
   const loop = createLoop((delta) => {
     world.step(1 / 60, delta)

@@ -1,3 +1,3 @@
-export interface Updatable {
-  update(deltaTime: number): void
+export abstract class Updatable {
+  abstract update(deltaTime: number): void
 }

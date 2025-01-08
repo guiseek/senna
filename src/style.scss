@@ -54,6 +54,27 @@ body {
   }
 }
 
+#domGear {
+  width: 80px;
+  height: 80px;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1em;
+  border: 0.2em solid #ffffff80;
+
+  #domGearCurrent {
+    margin: 0;
+    padding: 0;
+    font-size: 3em;
+    color: #ffffff;
+  }
+}
+
 #domAlert {
   width: 80px;
   height: 80px;

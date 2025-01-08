@@ -8,6 +8,7 @@ export * from './event-emitter';
 export * from './geometry-to-shape';
 export * from './get-by-name';
 export * from './inner';
+export * from './interval';
 export * from './keys';
 export * from './mesh-to-body';
 export * from './shape-to-geometry';

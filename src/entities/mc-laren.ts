@@ -1,20 +1,13 @@
 import {Callback, EventEmitter, getByName, meshToBody} from '../utils'
-import {SoundIdle, SoundRun, SoundRunning, SoundStart} from './sound'
 import {Group, Mesh, MeshStandardMaterial, Vector3} from 'three'
 import {ObjectModel, Updatable} from '../interfaces'
 import {DEG2RAD} from 'three/src/math/MathUtils.js'
-import {Input} from '../core'
 import {World, Material} from 'cannon-es'
+import {Engine} from './engine'
+import {Input} from '../core'
 
 export interface McLarenEventMap {
   start: true
-}
-
-export interface McLarenSoundMap {
-  start: SoundStart
-  idle: SoundIdle
-  run: SoundRun
-  running: SoundRunning
 }
 
 export class McLaren implements ObjectModel, Updatable {
@@ -25,6 +18,8 @@ export class McLaren implements ObjectModel, Updatable {
   }
 
   #carMass = 6000
+
+  #deceleration = 20
 
   #tractionForceValue = 90000
 
@@ -100,19 +95,25 @@ export class McLaren implements ObjectModel, Updatable {
 
   #input = Input.getInstance()
 
+  // #orientation = Orientation.getInstance()
+
   material = new Material('chassis')
 
   // #chassisBody: Body
 
   #event = new EventEmitter<McLarenEventMap>()
 
-  #started = false
+  get tracked() {
+    return {
+      frontLeft: this.#frontWheelLeft,
+      frontRight: this.#frontWheelRight,
+      backLeft: this.#backWheelLeft,
+      backRight: this.#backWheelRight,
+      chassis: this.#chassis,
+    }
+  }
 
-  constructor(
-    scene: Group,
-    private world: World,
-    private sound: McLarenSoundMap
-  ) {
+  constructor(scene: Group, private world: World, readonly engine: Engine) {
     this.#model = scene
 
     this.#head = getByName(this.model, 'Head')
@@ -121,14 +122,6 @@ export class McLaren implements ObjectModel, Updatable {
 
     this.#frontHubRight = getByName(this.model, 'FrontHubRight')
     this.#steeringWheel = getByName(this.model, 'SteeringWheel')
-
-    this.#input.on('change', async (event) => {
-      if (!this.#started && event.key === 'up' && !event.prev && event.next) {
-        await this.sound.start.exec()
-        this.#started = event.next
-        this.sound.running.play()
-      }
-    })
 
     /**
      * Chassis
@@ -140,7 +133,7 @@ export class McLaren implements ObjectModel, Updatable {
 
     this.#chassis = mesh as Mesh
 
-    this.#chassis.add(this.sound.start, this.sound.idle, this.sound.running)
+    // this.#chassis.add(this.sound.start, this.sound.idle, this.sound.running)
 
     const chassisBody = meshToBody(this.#chassis, {
       mass: 150,
@@ -256,7 +249,7 @@ export class McLaren implements ObjectModel, Updatable {
   }
 
   update(delta: number) {
-    if (!this.#started) return
+    // if (!this.#started) return
 
     this.#updateSound()
     this.#updateCar(delta)
@@ -266,13 +259,7 @@ export class McLaren implements ObjectModel, Updatable {
   }
 
   #updateSound() {
-    if (
-      this.#started &&
-      !this.sound.running.isPlaying &&
-      !this.sound.idle.isPlaying
-    ) {
-      this.sound.idle.play()
-    } else this.sound.running.update(this.rpm)
+    this.engine.update(this.rpm)
   }
 
   #updateCar(deltaTime: number) {
@@ -286,7 +273,18 @@ export class McLaren implements ObjectModel, Updatable {
     } else if (this.#input.state.down) {
       this.#tractionForce.set(0, 0, -this.#tractionForceValue * 0.5)
     } else {
-      this.#tractionForce.set(0, 0, 0)
+      // Sem aceleração ou ré, desacelera gradualmente
+      // Intensidade da desaceleração (ajustável)
+      const deceleration = this.#deceleration * deltaTime
+
+      const speed = this.#currentVelocity.length() // Velocidade atual
+      if (speed > deceleration) {
+        // Reduz gradualmente a velocidade
+        this.#currentVelocity.setLength(speed - deceleration)
+      } else {
+        // Para o carro se a velocidade for muito baixa
+        this.#currentVelocity.set(0, 0, 0)
+      }
     }
 
     /** Aplica força de freio */
@@ -397,6 +395,11 @@ export class McLaren implements ObjectModel, Updatable {
     }
 
     /** Calcula ângulo de direção */
+
+    // if (this.#orientation.steeringAngle) {
+    //   this.#steeringAngle = this.#orientation.steeringAngle
+    // } else {
+    // }
     this.#steeringAngle = this.#currentSteering * 25 * DEG2RAD
 
     /** Aplica ângulo de direção */
