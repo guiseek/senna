@@ -4,7 +4,7 @@ import {Gear} from '../../core'
 export class GearIdle extends Gear {
   readonly min = 0
 
-  readonly max = 1
+  readonly max = 5
 
   constructor(listener: AudioListener, buffer: AudioBuffer) {
     super(listener, buffer)

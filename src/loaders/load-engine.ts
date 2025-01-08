@@ -22,12 +22,12 @@ export const loadEngine = async (listener: AudioListener) => {
       createProgress('Gear Reverse AudioBuffer')
     ),
     loader.audio.loadAsync('idle.ogg', createProgress('Gear Idle AudioBuffer')),
-    loader.audio.loadAsync('1.ogg', createProgress('1ª Gear AudioBuffer')),
-    loader.audio.loadAsync('2.ogg', createProgress('2ª Gear AudioBuffer')),
-    loader.audio.loadAsync('3.ogg', createProgress('3ª Gear AudioBuffer')),
-    loader.audio.loadAsync('4.ogg', createProgress('4ª Gear AudioBuffer')),
-    loader.audio.loadAsync('5.ogg', createProgress('5ª Gear AudioBuffer')),
-    loader.audio.loadAsync('6.ogg', createProgress('6ª Gear AudioBuffer')),
+    loader.audio.loadAsync('low.ogg', createProgress('1ª Gear AudioBuffer')),
+    loader.audio.loadAsync('low.ogg', createProgress('2ª Gear AudioBuffer')),
+    loader.audio.loadAsync('med.ogg', createProgress('3ª Gear AudioBuffer')),
+    loader.audio.loadAsync('med.ogg', createProgress('4ª Gear AudioBuffer')),
+    loader.audio.loadAsync('high.ogg', createProgress('5ª Gear AudioBuffer')),
+    loader.audio.loadAsync('high.ogg', createProgress('6ª Gear AudioBuffer')),
   ]).then((buffers) => {
     return new Engine([
       new GearReverse(listener, buffers[0]),

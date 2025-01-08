@@ -10,11 +10,21 @@ export class Collision {
   }
 
   chekOutOfTrack(mcLaren: McLaren) {
-    let boundintBox = new Box3().setFromObject(mcLaren.tracked.chassis)
     if (!this.#octree.box) throw `Box does not found`
-    let collision = this.#octree.box.intersectsBox(boundintBox)
-    if (!collision) {
-      mcLaren.model.position.x -= 5
+
+    let boundintFrontLeft = new Box3().setFromObject(mcLaren.tracked.frontLeft)
+    let boundintFrontRight = new Box3().setFromObject(mcLaren.tracked.frontRight)
+
+    if (!this.#octree.box.intersectsBox(boundintFrontLeft)) {
+      mcLaren.applyLimboRotation(
+        mcLaren.frontLeftRotation,
+        (mcLaren.frontLeftRotationAngle += 0.0001)
+      )
+    } else if (!this.#octree.box.intersectsBox(boundintFrontRight)) {
+      mcLaren.applyLimboRotation(
+        mcLaren.frontRightRotation,
+        (mcLaren.frontRightRotationAngle -= 0.0001)
+      )
     }
   }
 }

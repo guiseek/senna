@@ -1,12 +1,12 @@
 import {loadEngine, loadMcLaren, loadTrack} from './loaders'
 import {Camera, Follower, Input, Renderer} from './core'
 import {createLights, createLoop} from './factories'
-import {inner, interval, values} from './utils'
 import {AudioListener, Scene} from 'three'
+import {inner, interval, values} from './utils'
 import {Collision} from './physics'
-import {updateGear} from './dom'
 import {World} from 'cannon-es'
 import './style.scss'
+import {updateGear} from './dom'
 
 const scene = new Scene()
 
@@ -32,24 +32,29 @@ const init = async () => {
 
   const engine = await loadEngine(audioListener)
 
-  const track = await loadTrack(world)
+  const track = await loadTrack()
+  track.model.position.y = 1
   scene.add(track.model)
 
-  collision.track(track.model)
+  collision.track(track.asphalt)
 
   const mcLaren = await loadMcLaren(world, engine)
-  mcLaren.model.position.x = 260
+  mcLaren.model.position.z = -10
+  mcLaren.model.position.x = -2
   mcLaren.model.rotation.y = -Math.PI / 2
   scene.add(mcLaren.model)
 
-  follower.setTarget(mcLaren)
-
+  // mcLaren.model.rotateOnWorldAxis(new Vector3(1, 0, 3), 0.1)
   interval(() => {
-    updateGear(mcLaren.engine.current)
-  }, 500)
+    updateGear(mcLaren.rpm)
+  }, 250)
+
+  follower.setTarget(mcLaren)
 
   const loop = createLoop((delta) => {
     world.step(1 / 60, delta)
+
+    collision.chekOutOfTrack(mcLaren)
 
     mcLaren.update(delta)
 

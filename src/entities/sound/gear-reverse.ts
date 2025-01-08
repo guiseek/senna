@@ -13,7 +13,7 @@ export class GearReverse extends Gear {
 
   update(rpm: number) {
     const normalizedRpm = this.normalizeRpm(Math.abs(rpm))
-    this.setPlaybackRate(0.7 + normalizedRpm * 0.3)
-    this.setVolume(0.2 + normalizedRpm * 0.6)
+    this.setVolume(0.1 + normalizedRpm * 0.5)
+    this.setPlaybackRate(0.6 + normalizedRpm * 0.4)
   }
 }

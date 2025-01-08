@@ -101,6 +101,17 @@ export class McLaren implements ObjectModel, Updatable {
 
   // #chassisBody: Body
 
+  frontLeftRotation = new Vector3(1, 0, 1)
+  frontLeftRotationAngle = 0
+
+  frontRightRotation = new Vector3(-1, 0, -1)
+  frontRightRotationAngle = 0
+  
+
+  applyLimboRotation(axis: Vector3, angle: number) {
+    this.model.rotateOnWorldAxis(axis, angle)
+  }
+
   #event = new EventEmitter<McLarenEventMap>()
 
   get tracked() {
@@ -394,15 +405,10 @@ export class McLaren implements ObjectModel, Updatable {
       this.#currentSteering = Math.max(-1, Math.min(1, this.#currentSteering))
     }
 
-    /** Calcula ângulo de direção */
-
-    // if (this.#orientation.steeringAngle) {
-    //   this.#steeringAngle = this.#orientation.steeringAngle
-    // } else {
-    // }
+    /** Ângulo de direção */
     this.#steeringAngle = this.#currentSteering * 25 * DEG2RAD
 
-    /** Aplica ângulo de direção */
+    /** Aplica o ângulo */
     this.#frontWheelLeftParent.rotation.y = this.#steeringAngle
     this.#frontWheelRightParent.rotation.y = this.#steeringAngle
     this.#frontHubLeft.rotation.y = this.#steeringAngle
@@ -412,7 +418,7 @@ export class McLaren implements ObjectModel, Updatable {
 
     this.#head.rotation.y = this.#steeringAngle * 0.6
 
-    /** Rotação sincronizada das rodas */
+    /** Sincroniza as rodas */
     const wheelRadius = 0.5
     const localVelocityZ = this.#currentVelocity.dot(
       new Vector3(

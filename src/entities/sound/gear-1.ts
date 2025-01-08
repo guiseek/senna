@@ -2,9 +2,9 @@ import {AudioListener} from 'three'
 import {Gear} from '../../core'
 
 export class Gear1 extends Gear {
-  readonly min = 1
+  readonly min = 0
 
-  readonly max = 600
+  readonly max = 800
 
   constructor(listener: AudioListener, buffer: AudioBuffer) {
     super(listener, buffer)
