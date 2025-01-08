@@ -1,14 +1,22 @@
 import {loadEngine, loadMcLaren, loadTrack} from './loaders'
-import {Camera, Follower, Input, Renderer} from './core'
+import {Camera, Follower, Input, Loader, Renderer} from './core'
 import {createLights, createLoop} from './factories'
-import {AudioListener, Scene} from 'three'
 import {inner, interval, values} from './utils'
+import {AudioListener, PMREMGenerator, Scene} from 'three'
 import {Collision} from './physics'
+import {updateGear} from './dom'
 import {World} from 'cannon-es'
 import './style.scss'
-import {updateGear} from './dom'
 
 const scene = new Scene()
+
+const loader = Loader.getInstance()
+loader.rgbe.loadAsync('day_4k.hdr').then((texture) => {
+  const pmremGenerator = new PMREMGenerator(renderer)
+  const envMap = pmremGenerator.fromEquirectangular(texture)
+  scene.environment = envMap.texture
+  scene.background = envMap.texture
+})
 
 const camera = new Camera(75, 0.1, 10000)
 
